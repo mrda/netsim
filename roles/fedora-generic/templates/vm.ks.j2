@@ -3,7 +3,11 @@ keyboard us
 lang en_US.UTF-8
 skipx
 
+{% if use_dhcp == 'False' %}
 network --device {{ net_if }} --bootproto=static --ip={{ vm_ip }} --netmask={{ ip_netmask }} --gateway={{ ip_gateway }} --nameserver={{ nameserver }}
+{% else %}
+network --device {{ net_if }} --bootproto=dhcp
+{% endif %}
 
 rootpw --iscrypted $1$eew4wbJ/$S9XdYHHFb5eyRSY3I7usV0
 selinux --enforcing

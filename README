@@ -1,8 +1,8 @@
-Currently the fedora-generic builds a single VM
-Inventory determines whether you get a static ip address or a DHCP aquired one.  The use_dhcp control this.
+Currently the fedora-generic role builds a single VM
+The fedora-generic var use_dhcp determines whether you get a static ip address or a DHCP aquired one.
 
-Once you're happy and you want to start a build:
+Once you're happy and you want to build a VM:
 
 ansible-playbook playbooks/main.yaml
 
-
+Once built, you can `ssh root@<ipaddr>` as your ssh key has been injected

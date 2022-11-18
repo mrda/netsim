@@ -4,7 +4,7 @@
   gather_facts: true
   become: false
   vars:
-    use_dhcp: False
+    use_dhcp: True
     #use_dhcp: True
     libvirt_connection: "qemu+tcp:///system"
     user_ssh_pub_id_filename: ~/.ssh/id_rsa.pub
