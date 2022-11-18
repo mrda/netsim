@@ -1,0 +1,8 @@
+Currently the fedora-generic builds a single VM
+Inventory determines whether you get a static ip address or a DHCP aquired one.  The use_dhcp control this.
+
+Once you're happy and you want to start a build:
+
+ansible-playbook playbooks/main.yaml
+
+

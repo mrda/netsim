@@ -1,0 +1,140 @@
+---
+- name: stat the user's ssh public ident
+  stat:
+    path: "{{ user_ssh_pub_id_filename | expanduser }}"
+  register: user_ssh_pub_id_filename_result
+
+- name: check to ensure we can read the user's ssh public id file
+  fail:
+    msg: Unable to find file "{{ user_ssh_pub_id_filename }}", please update your inventory
+  when: user_ssh_pub_id_filename_result.stat.exists == False
+
+- name: grab the user's ssh public ident ready to inject it into the ks
+  slurp:
+    src: "{{ user_ssh_pub_id_filename }}"
+  register: user_ssh_pub_id
+
+- name: destroy vm
+  community.libvirt.virt:
+    name: "{{ vm_name }}"
+    command: destroy
+  register: destroyed_vm
+  failed_when:
+    - destroyed_vm.msg is defined
+    - "'not found' not in destroyed_vm.msg"
+    - "'domain is not running' not in destroyed_vm.msg"
+  when: rebuild_vm
+
+- name: undefine vms
+  command: virsh undefine {{ vm_name }} --nvram
+  register: undefined_vm
+  failed_when:
+    - undefined_vm.rc != 0
+    - "'failed to get domain' not in undefined_vm.stderr"
+  when: rebuild_vm
+
+- name: create needed directories
+  file:
+    name: "{{ kickstart_dir }}"
+    group: libvirt
+    state: directory
+
+- name: Create a new sparse disk
+  shell: qemu-img create -f raw "{{ disk_image }}" "{{ disk_size }}"
+
+- name: copy kickstart file
+  template:
+    src: vm.ks.j2
+    dest: "{{ kickstart_dir }}/{{ kickstart_file }}"
+
+- name: Datestamp prior to install
+  shell: date
+  delegate_to: localhost
+  register: date_output
+
+- name: Print time before installation begins
+  debug:
+    msg: "Building vm {{ vm_name }} start time: {{ date_output.stdout }}"
+
+- name: Print use_dhcp
+  debug:
+    msg: "Printing use_dhcp value {{ use_dhcp }}"
+
+- name: Assign networking vars for VM installation (default DHCP networking)
+  set_fact:
+    extra_args: "inst.ks=file:/{{ vm_name }}.ks console=ttyS0,115200n8"
+    network: "network=default"
+  when: use_dhcp
+
+- name: Assign networking vars for VM installation (assigned IP address)
+  set_fact:
+    extra_args: "inst.ks=file:/{{ vm_name }}.ks console=ttyS0,115200n8 ip={{ vm_ip }}:{{ server }}:{{ ip_gateway }}:{{ ip_netmask }}:{{ vm_name }}{{ net_domain }}:{{ net_if }}:{{ autoconf }}:{{ dns0 }}:{{ dns1 }}:{{ ntp }} nameserver={{ nameserver }}"
+    network: "bridge=virbr0"
+  when: not use_dhcp
+
+- name: "Build and install the VM {{ vm_name }}"
+  shell: >
+    virt-install --name "{{ vm_name }}"
+    --memory "{{ memory }}"
+    --vcpus 4
+    --disk {{ disk_image }},format={{ disk_image_format }}
+    --os-variant "{{ os_variant }}"
+    --network "{{ network }}"
+    --events on_reboot=destroy
+    --location "{{ baseos_repo }}"
+    --initrd-inject "{{ kickstart_dir }}/{{ kickstart_file }}"
+    --graphics=none
+    --noautoconsole
+    --extra-args="{{ extra_args }}"
+    --wait=-1
+
+- name: Datestamp after install
+  shell: date
+  delegate_to: localhost
+  register: date_output2
+
+- name: Print time before installation begins
+  debug:
+    msg: "Finished building vm {{ vm_name }} start time: {{ date_output2.stdout }}"
+
+# Need to wait for ip address to get allocated
+
+- name: See if we need to go find the VM IP address
+  set_fact:
+    found_ip: true
+
+- name: Wait for IP address allocation and routing to work
+  become: yes
+  shell: |
+      virsh domifaddr "{{ vm_name }}" |
+      tail -n +3 | awk '{ print $4 }' |
+      cut -d'/' -f1 |
+      while read ipa ; do
+        ping -c1 $ipa >& /dev/null;
+        [[ $? -eq 0 ]] && echo "$ipa" && break;
+      done
+  register: ip_addr
+  delegate_to: localhost
+  until: ip_addr.rc == 0
+  delay: 10
+  retries: 12
+  when: found_ip == false
+
+- name: Grab ip adddresses
+  command: >
+    virsh domifaddr {{ vm_name }}
+  register: domifaddr_output
+
+- name: Debug ip addressinfo
+  debug:
+    msg: "{{ domifaddr_output.stdout_lines }}"
+
+- name: Remove IP addresses from ssh known hosts file
+  shell: |
+    virsh domifaddr "{{ vm_name }}" |
+    awk 'NR > 2 { split($4, ip, "/"); print ip[1] }' |
+    while read ipaddr ; do
+      echo IP address is \"$ipaddr\"
+      [ "$ipaddr" != "" ] && ssh-keygen -R $ipaddr
+    done
+  ignore_errors: yes

@@ -1,0 +1,31 @@
+---
+- name: "Role fedora-generic"
+  debug:
+    msg: "Do a generic fedora install"
+
+- name: Start build tasks per user
+  include_tasks:
+    file: ./build-ks.yaml
+  loop: "{{ vms.keys()|list }}"
+  vars:
+    fedora_version: 36
+    memory: 8192
+    cpus: 4
+    image_dir: /home/images
+    vm_name: "{{ item }}"
+    machine_id: "{{ vms[item]['machine_id'] | default(None) }}"
+    vm_ip: "{{ vms[item]['ip'] | default(None) }}"
+    disk_image: "{{ image_dir }}/{{ vm_name }}.raw"
+    disk_image_format: "raw"
+    disk_size: "8G"
+    rebuild_vm: True
+    kickstart_dir: "{{ image_dir }}/ks"
+    kickstart_file: "{{ vm_name }}.ks"
+    partition_size: 3000
+    baseos_repo: "{{ repo }}"
+    os_variant: "fedora{{ fedora_version }}"
+    server: ""
+    dns0: ""
+    dns1: ""
+    autoconf: ""
+    ntp: ""
