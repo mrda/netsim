@@ -3,7 +3,7 @@ keyboard us
 lang en_US.UTF-8
 skipx
 
-{% if use_dhcp == 'False' %}
+{% if use_dhcp == False %}
 network --device {{ net_if }} --bootproto=static --ip={{ vm_ip }} --netmask={{ ip_netmask }} --gateway={{ ip_gateway }} --nameserver={{ nameserver }}
 {% else %}
 network --device {{ net_if }} --bootproto=dhcp
@@ -47,7 +47,7 @@ rm -f /var/lib/systemd/random-seed
 
 cat << "EO_REPO" > /etc/yum.repos.d/base.repo
 [rhel]
-name=RHEL
+name=Fedora
 baseurl={{ baseos_repo }}
 enabled=1
 gpgcheck=0

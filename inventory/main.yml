@@ -4,12 +4,12 @@ all:
     localhost:
   vars:
     vms:
-      myrouter:
-        ip: 192.168.2.1
+      worker0:
+        ip: 192.168.122.10
         machine_id: 1
-#      worker1:
-#        ip: 192.168.2.2
-#        machine_id: 2
-#      worker2:
-#        ip: 192.168.2.3
-#        machine_id: 3
+      worker1:
+        ip: 192.168.122.11
+        machine_id: 2
+      worker2:
+        ip: 192.168.122.12
+        machine_id: 3

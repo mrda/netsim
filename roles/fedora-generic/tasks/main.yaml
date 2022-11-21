@@ -27,5 +27,5 @@
     server: ""
     dns0: ""
     dns1: ""
-    autoconf: ""
+    autoconf: "none"
     ntp: ""
