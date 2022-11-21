@@ -6,7 +6,6 @@
   vars:
     use_dhcp: False
     libvirt_connection: "qemu+tcp:///system"
-    user_ssh_pub_id_filename: ~/.ssh/id_rsa.pub
     net_domain: ".example.com"
     net_if: "enp1s0"
     ip_netmask: "255.255.255.0"

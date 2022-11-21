@@ -9,5 +9,5 @@
   loop: "{{ vms.keys()|list }}"
   vars:
     username: root
-    ssh_params: "-o ForwardAgent=yes -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i /home/mrda/.ssh/id_rsa"
+    ssh_params: "-o ForwardAgent=yes -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i {{ user_ssh_pub_id_filename }}"
     vm_name: "{{ item }}"

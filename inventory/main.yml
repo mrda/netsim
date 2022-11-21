@@ -5,16 +5,13 @@ all:
   vars:
     scenario: "scenario1"
     scenario_comment: "This is one scenario with split master nodes"
+    user_ssh_pub_id_filename: ~/.ssh/id_rsa.pub
     interface: enp1s0
     classids:
       one:
         name: "1:1"
         prio: 10
         latency: 50ms
-      two:
-        name: "1:2"
-        prio: 15
-        latency: 25ms
     vms:
       master0:
         ip: 192.168.122.10
@@ -22,18 +19,13 @@ all:
         scenario1:
           master1: "1:1"
           worker1: "1:1"
-        scenario2:
-          worker1: "1:1"
       master1:
         ip: 192.168.122.11
         machine_id: 2
         scenario1:
           master0: "1:1"
-        scenario2:
-          worker1: "1:1"
       worker1:
         ip: 192.168.122.12
         machine_id: 3
         scenario1:
           master0: "1:1"
-          master1: "1:1"
