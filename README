@@ -7,28 +7,29 @@ If you just want to run everything, you can just do this:
 
 ansible-playbook playbooks/main.yaml
 
-# fedora-generic
+This has been tested on Fedora 36, when building Fedora 36 VMs
 
-Currently the fedora-generic role builds a single VM
+## fedora-generic
+
+Currently the fedora-generic role builds a VMs according to your inventory.
 The fedora-generic var use_dhcp determines whether you get a static ip address or a DHCP aquired one.
 
-Once you're happy and you just want to build a VM:
+Once you're happy and you just want to build your VMs:
 
 ansible-playbook playbooks/main.yaml --tags buildvms
 
 Once built, you can `ssh root@<ipaddr>` as your ssh key has been injected
 
-# traffic-shaping
+## traffic-shaping
 
-The traffic-shaping role can be run multiple times.  Just update your inventory
-to reflect the network architecture you desire, including the latency between
+The traffic-shaping role can be run multiple times.  Just update your inventory to reflect the network architecture you desire, including the latency between
 certain nodes.
 
 Once you're happy and you just want to apply traffic shaping:
 
 ansible-playbook playbooks/main.yaml --tags trafficshape
 
-# FAQ
+## FAQ
 
 Because of the way ansible uses ssh, if you have an ssh key that has a passphrase
 associated with it, you may need to add the following entry to ~/.ssh/config to
