@@ -1,0 +1,13 @@
+---
+- name: Set up scenario
+  debug:
+    msg: "Setting up '{{ scenario }}'.  {{ scenario_comment }}"
+
+- name: Implement traffic shaping per node
+  include_tasks:
+    file: ./shape.yaml
+  loop: "{{ vms.keys()|list }}"
+  vars:
+    username: root
+    ssh_params: "-o ForwardAgent=yes -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i /home/mrda/.ssh/id_rsa"
+    vm_name: "{{ item }}"

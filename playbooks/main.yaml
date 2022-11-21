@@ -5,7 +5,6 @@
   become: false
   vars:
     use_dhcp: False
-    #use_dhcp: True
     libvirt_connection: "qemu+tcp:///system"
     user_ssh_pub_id_filename: ~/.ssh/id_rsa.pub
     net_domain: ".example.com"
@@ -16,5 +15,14 @@
     repo: "https://download.fedoraproject.org/pub/fedora/linux/releases/{{ fedora_version }}/Everything/x86_64/os"
   roles:
     - fedora-generic
+  tags:
+    - buildvms
 
-
+- name: Implement traffic shapping
+  hosts: all
+  gather_facts: true
+  become: false
+  roles:
+    - traffic-shapping
+  tags:
+    - trafficshape

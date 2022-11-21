@@ -1,0 +1,27 @@
+---
+- name: "Grab hostname:  ssh {{ ssh_params }} {{ username }}@{{ vms[vm_name]['ip'] }} hostname"
+  shell: "ssh {{ ssh_params }} {{ username }}@{{ vms[vm_name]['ip'] }} hostname"
+  register: hostname_output
+
+- name: Match up hostname and IP address
+  debug:
+    msg: "'{{ hostname_output.stdout }}' has IP address {{ vms[vm_name]['ip'] }}"
+
+- name: Remove any traffic shapping for the specified interface
+  shell: "ssh {{ ssh_params }} {{ username }}@{{ vms[vm_name]['ip'] }} sudo tc qdisc del dev {{ interface }} root"
+  ignore_errors: True
+
+- name: Create the queue
+  shell: "ssh {{ ssh_params }} {{ username }}@{{ vms[vm_name]['ip'] }} sudo tc qdisc add dev {{ interface }} root handle 1: prio"
+
+- name: Add latency for all classids
+  shell: "ssh {{ ssh_params }} {{ username }}@{{ vms[vm_name]['ip'] }} sudo tc qdisc add dev {{ interface }} parent {{ classids[cid]['name'] }} handle {{ classids[cid]['prio'] }}: netem delay {{ classids[cid]['latency'] }}"
+  loop: "{{ classids.keys()|list }}"
+  loop_control:
+    loop_var: cid
+
+- name: Add traffic latencies for outgoing network traffic for each specified node and destination ip address
+  shell: "ssh {{ ssh_params }} {{ username }}@{{ vms[vm_name]['ip'] }} sudo tc filter add dev {{ interface }} protocol ip parent 1:0 prio 3 u32 match ip dst {{ vms[machine]['ip'] }} flowid {{ vms[vm_name][scenario][machine] }}"
+  loop: "{{ vms[vm_name][scenario].keys()|list }}"
+  loop_control:
+    loop_var: machine

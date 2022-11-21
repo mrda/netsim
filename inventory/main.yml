@@ -3,13 +3,37 @@ all:
   hosts:
     localhost:
   vars:
+    scenario: "scenario1"
+    scenario_comment: "This is one scenario with split master nodes"
+    interface: enp1s0
+    classids:
+      one:
+        name: "1:1"
+        prio: 10
+        latency: 50ms
+      two:
+        name: "1:2"
+        prio: 15
+        latency: 25ms
     vms:
-      worker0:
+      master0:
         ip: 192.168.122.10
         machine_id: 1
-      worker1:
+        scenario1:
+          master1: "1:1"
+          worker1: "1:1"
+        scenario2:
+          worker1: "1:1"
+      master1:
         ip: 192.168.122.11
         machine_id: 2
-      worker2:
+        scenario1:
+          master0: "1:1"
+        scenario2:
+          worker1: "1:1"
+      worker1:
         ip: 192.168.122.12
         machine_id: 3
+        scenario1:
+          master0: "1:1"
+          master1: "1:1"
